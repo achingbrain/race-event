@@ -41,7 +41,7 @@ export class AbortError extends Error {
   }
 }
 
-export interface RaceEventOptions {
+export interface RaceEventOptions<T> {
   /**
    * The message for the error thrown if the signal aborts
    */
@@ -51,12 +51,19 @@ export interface RaceEventOptions {
    * The code for the error thrown if the signal aborts
    */
   errorCode?: string
+
+  /**
+   * When multiple events with the same name may be emitted, pass a filter
+   * function here to allow ignoring ones that should not cause the returned
+   * promise to resolve.
+   */
+  filter?(evt: T): boolean
 }
 
 /**
  * Race a promise against an abort signal
  */
-export async function raceEvent <T> (emitter: EventTarget, eventName: string, signal?: AbortSignal, opts?: RaceEventOptions): Promise<T> {
+export async function raceEvent <T> (emitter: EventTarget, eventName: string, signal?: AbortSignal, opts?: RaceEventOptions<T>): Promise<T> {
   // create the error here so we have more context in the stack trace
   const error = new AbortError(opts?.errorMessage, opts?.errorCode)
 
@@ -66,6 +73,10 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
 
   return new Promise((resolve, reject) => {
     const eventListener = (evt: any): void => {
+      if (opts?.filter?.(evt) === false) {
+        return
+      }
+
       emitter.removeEventListener(eventName, eventListener)
       signal?.removeEventListener('abort', abortListener)
 

@@ -79,4 +79,20 @@ describe('race-event', () => {
 
     await expect(raceEvent(emitter, eventName, controller.signal)).to.eventually.equal(event)
   })
+
+  it('should filter events', async () => {
+    const otherEvent = new CustomEvent(eventName, { detail: 'hello' })
+    const controller = new AbortController()
+
+    setTimeout(() => {
+      emitter.dispatchEvent(event)
+      emitter.dispatchEvent(otherEvent)
+    }, 10)
+
+    await expect(raceEvent<CustomEvent<string>>(emitter, eventName, controller.signal, {
+      filter: (evt) => {
+        return evt.detail === 'hello'
+      }
+    })).to.eventually.equal(otherEvent)
+  })
 })
