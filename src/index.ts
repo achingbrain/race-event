@@ -52,6 +52,11 @@ export interface RaceEventOptions<T> {
    */
   errorCode?: string
 
+  /**
+   * When multiple events with the same name may be emitted, pass a filter
+   * function here to allow ignoring ones that should not cause the returned
+   * promise to resolve.
+   */
   filter?(evt: T): boolean
 }
 
