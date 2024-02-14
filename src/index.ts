@@ -4,10 +4,10 @@
  * Race an event against an AbortSignal, taking care to remove any event
  * listeners that were added.
  *
- * @example
+ * @example Getting started
  *
  * ```TypeScript
- * const { raceEvent } = require('race-event')
+ * import { raceEvent } from 'race-event'
  *
  * const controller = new AbortController()
  * const emitter = new EventTarget()
@@ -23,6 +23,70 @@
  *
  * // throws an AbortError
  * const resolve = await raceEvent(emitter, 'event', controller.signal)
+ * ```
+ *
+ * @example Customising the thrown AbortError
+ *
+ * The error message and `.code` property of the thrown `AbortError` can be
+ * specified by passing options:
+ *
+ * ```TypeScript
+ * import { raceEvent } from 'race-event'
+ *
+ * const controller = new AbortController()
+ * const emitter = new EventTarget()
+ *
+ * setTimeout(() => {
+ *   controller.abort()
+ * }, 500)
+ *
+ * // throws a Error: Oh no!
+ * const resolve = await raceEvent(emitter, 'event', controller.signal, {
+ *   errorMessage: 'Oh no!',
+ *   errorCode: 'ERR_OH_NO'
+ * })
+ * ```
+ *
+ * @example Only resolving on specific events
+ *
+ * Where multiple events with the same type are emitted, a `filter` function can
+ * be passed to only resolve on one of them:
+ *
+ * ```TypeScript
+ * import { raceEvent } from 'race-event'
+ *
+ * const controller = new AbortController()
+ * const emitter = new EventTarget()
+ *
+ * // throws a Error: Oh no!
+ * const resolve = await raceEvent(emitter, 'event', controller.signal, {
+ *   filter: (evt: Event) => {
+ *     return evt.detail.foo === 'bar'
+ *   }
+ * })
+ * ```
+ *
+ * @example Terminating early by throwing from the filter
+ *
+ * You can cause listening for the event to cease and all event listeners to be
+ * removed by throwing from the filter:
+ *
+ * ```TypeScript
+ * import { raceEvent } from 'race-event'
+ *
+ * const controller = new AbortController()
+ * const emitter = new EventTarget()
+ *
+ * // throws Error: Cannot continue
+ * const resolve = await raceEvent(emitter, 'event', controller.signal, {
+ *   filter: (evt) => {
+ *     if (...reasons) {
+ *       throw new Error('Cannot continue')
+ *     }
+ *
+ *     return true
+ *   }
+ * })
  * ```
  */
 
@@ -73,7 +137,15 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
 
   return new Promise((resolve, reject) => {
     const eventListener = (evt: any): void => {
-      if (opts?.filter?.(evt) === false) {
+      try {
+        if (opts?.filter?.(evt) === false) {
+          return
+        }
+      } catch (err: any) {
+        emitter.removeEventListener(eventName, eventListener)
+        signal?.removeEventListener('abort', abortListener)
+
+        reject(err)
         return
       }
 
