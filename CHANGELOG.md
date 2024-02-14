@@ -1,3 +1,10 @@
+## [1.2.0](https://github.com/achingbrain/race-event/compare/v1.1.0...v1.2.0) (2024-02-14)
+
+
+### Features
+
+* allow throwing from event filter ([#11](https://github.com/achingbrain/race-event/issues/11)) ([71b5b54](https://github.com/achingbrain/race-event/commit/71b5b54fe0fce1a601ba31a80f588b694e347ccd))
+
 ## [1.1.0](https://github.com/achingbrain/race-event/compare/v1.0.0...v1.1.0) (2024-01-05)
 
 
