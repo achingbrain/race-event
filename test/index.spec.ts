@@ -95,4 +95,19 @@ describe('race-event', () => {
       }
     })).to.eventually.equal(otherEvent)
   })
+
+  it('should reject if the filter throws', async () => {
+    const err = new Error('Urk!')
+    const controller = new AbortController()
+
+    setTimeout(() => {
+      emitter.dispatchEvent(event)
+    }, 10)
+
+    await expect(raceEvent<CustomEvent<string>>(emitter, eventName, controller.signal, {
+      filter: () => {
+        throw err
+      }
+    })).to.eventually.be.rejectedWith(err)
+  })
 })
