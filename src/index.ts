@@ -25,6 +25,25 @@
  * const resolve = await raceEvent(emitter, 'event', controller.signal)
  * ```
  *
+ * @example Aborting the promise with an error event
+ *
+ * ```TypeScript
+ * import { raceEvent } from 'race-event'
+ *
+ * const emitter = new EventTarget()
+ *
+ * setTimeout(() => {
+ *   emitter.dispatchEvent(new CustomEvent('failure', {
+ *     detail: new Error('Oh no!')
+ *   }))
+ * }, 1000)
+ *
+ * // throws 'Oh no!' error
+ * const resolve = await raceEvent(emitter, 'success', AbortSignal.timeout(5000), {
+ *   errorEvent: 'failure'
+ * })
+ * ```
+ *
  * @example Customising the thrown AbortError
  *
  * The error message and `.code` property of the thrown `AbortError` can be
@@ -117,6 +136,13 @@ export interface RaceEventOptions<T> {
   errorCode?: string
 
   /**
+   * The name of an event emitted on the emitter that should cause the returned
+   * promise to reject. The rejection reason will be the `.detail` field of the
+   * event.
+   */
+  errorEvent?: string
+
+  /**
    * When multiple events with the same name may be emitted, pass a filter
    * function here to allow ignoring ones that should not cause the returned
    * promise to resolve.
@@ -136,32 +162,45 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
   }
 
   return new Promise((resolve, reject) => {
+    function removeListeners (): void {
+      signal?.removeEventListener('abort', abortListener)
+      emitter.removeEventListener(eventName, eventListener)
+
+      if (opts?.errorEvent != null) {
+        emitter.removeEventListener(opts.errorEvent, errorEventListener)
+      }
+    }
+
     const eventListener = (evt: any): void => {
       try {
         if (opts?.filter?.(evt) === false) {
           return
         }
       } catch (err: any) {
-        emitter.removeEventListener(eventName, eventListener)
-        signal?.removeEventListener('abort', abortListener)
-
+        removeListeners()
         reject(err)
         return
       }
 
-      emitter.removeEventListener(eventName, eventListener)
-      signal?.removeEventListener('abort', abortListener)
-
+      removeListeners()
       resolve(evt)
     }
-    const abortListener = (): void => {
-      emitter.removeEventListener(eventName, eventListener)
-      signal?.removeEventListener('abort', abortListener)
 
+    const errorEventListener = (evt: any): void => {
+      removeListeners()
+      reject(evt.detail)
+    }
+
+    const abortListener = (): void => {
+      removeListeners()
       reject(error)
     }
 
-    emitter.addEventListener(eventName, eventListener)
     signal?.addEventListener('abort', abortListener)
+    emitter.addEventListener(eventName, eventListener)
+
+    if (opts?.errorEvent != null) {
+      emitter.addEventListener(opts.errorEvent, errorEventListener)
+    }
   })
 }
