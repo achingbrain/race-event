@@ -1,3 +1,10 @@
+## [1.3.0](https://github.com/achingbrain/race-event/compare/v1.2.0...v1.3.0) (2024-04-25)
+
+
+### Features
+
+* reject on configurable error event ([#12](https://github.com/achingbrain/race-event/issues/12)) ([c8f00f3](https://github.com/achingbrain/race-event/commit/c8f00f3c1c3228bec9d7dbd7d6e9c6f8dca94904))
+
 ## [1.2.0](https://github.com/achingbrain/race-event/compare/v1.1.0...v1.2.0) (2024-02-14)
 
 
