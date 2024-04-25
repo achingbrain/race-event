@@ -110,4 +110,19 @@ describe('race-event', () => {
       }
     })).to.eventually.be.rejectedWith(err)
   })
+
+  it('should reject via an error event', async () => {
+    const err = new Error('Urk!')
+    const controller = new AbortController()
+
+    setTimeout(() => {
+      emitter.dispatchEvent(new CustomEvent<Error>('custom-error', {
+        detail: err
+      }))
+    }, 10)
+
+    await expect(raceEvent<CustomEvent<string>>(emitter, eventName, controller.signal, {
+      errorEvent: 'custom-error'
+    })).to.eventually.be.rejectedWith(err)
+  })
 })

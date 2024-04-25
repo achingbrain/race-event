@@ -46,6 +46,25 @@ setTimeout(() => {
 const resolve = await raceEvent(emitter, 'event', controller.signal)
 ```
 
+## Example - Aborting the promise with an error event
+
+```TypeScript
+import { raceEvent } from 'race-event'
+
+const emitter = new EventTarget()
+
+setTimeout(() => {
+  emitter.dispatchEvent(new CustomEvent('failure', {
+    detail: new Error('Oh no!')
+  }))
+}, 1000)
+
+// throws 'Oh no!' error
+const resolve = await raceEvent(emitter, 'success', AbortSignal.timeout(5000), {
+  errorEvent: 'failure'
+})
+```
+
 ## Example - Customising the thrown AbortError
 
 The error message and `.code` property of the thrown `AbortError` can be
