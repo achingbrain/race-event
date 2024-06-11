@@ -139,6 +139,8 @@ export interface RaceEventOptions<T> {
    * The name of an event emitted on the emitter that should cause the returned
    * promise to reject. The rejection reason will be the `.detail` field of the
    * event.
+   *
+   * @default "error"
    */
   errorEvent?: string
 
@@ -156,6 +158,7 @@ export interface RaceEventOptions<T> {
 export async function raceEvent <T> (emitter: EventTarget, eventName: string, signal?: AbortSignal, opts?: RaceEventOptions<T>): Promise<T> {
   // create the error here so we have more context in the stack trace
   const error = new AbortError(opts?.errorMessage, opts?.errorCode)
+  const errorEvent = opts?.errorEvent ?? 'error'
 
   if (signal?.aborted === true) {
     return Promise.reject(error)
@@ -165,10 +168,7 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
     function removeListeners (): void {
       signal?.removeEventListener('abort', abortListener)
       emitter.removeEventListener(eventName, eventListener)
-
-      if (opts?.errorEvent != null) {
-        emitter.removeEventListener(opts.errorEvent, errorEventListener)
-      }
+      emitter.removeEventListener(errorEvent, errorEventListener)
     }
 
     const eventListener = (evt: any): void => {
@@ -198,9 +198,6 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
 
     signal?.addEventListener('abort', abortListener)
     emitter.addEventListener(eventName, eventListener)
-
-    if (opts?.errorEvent != null) {
-      emitter.addEventListener(opts.errorEvent, errorEventListener)
-    }
+    emitter.addEventListener(errorEvent, errorEventListener)
   })
 }
