@@ -1,3 +1,13 @@
+## [1.4.0](https://github.com/achingbrain/race-event/compare/v1.3.0...v1.4.0) (2025-07-11)
+
+### Features
+
+* abort on error by default ([#13](https://github.com/achingbrain/race-event/issues/13)) ([3a4ab70](https://github.com/achingbrain/race-event/commit/3a4ab70b99420f079911cf3caf30ae60e6c36c12))
+
+### Bug Fixes
+
+* update project config ([#14](https://github.com/achingbrain/race-event/issues/14)) ([181c4e8](https://github.com/achingbrain/race-event/commit/181c4e8c5c660ee79ff7914bc241a1203870130c))
+
 ## [1.3.0](https://github.com/achingbrain/race-event/compare/v1.2.0...v1.3.0) (2024-04-25)
 
 
