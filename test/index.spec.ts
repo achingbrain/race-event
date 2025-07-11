@@ -26,7 +26,7 @@ describe('race-event', () => {
     const controller = new AbortController()
     controller.abort()
 
-    await expect(raceEvent(emitter, eventName, controller.signal)).to.eventually.be.rejected().with.property('code', 'ABORT_ERR')
+    await expect(raceEvent(emitter, eventName, controller.signal)).to.eventually.be.rejected().with.property('name', 'AbortError')
   })
 
   it('should have default error fields', async () => {
@@ -35,9 +35,7 @@ describe('race-event', () => {
 
     const err = await raceEvent(emitter, eventName, controller.signal).catch(err => err)
 
-    expect(err).to.have.property('type', 'aborted')
     expect(err).to.have.property('name', 'AbortError')
-    expect(err).to.have.property('code', 'ABORT_ERR')
   })
 
   it('should have override error fields', async () => {
@@ -64,7 +62,7 @@ describe('race-event', () => {
       controller.abort()
     }, 100)
 
-    await expect(raceEvent(emitter, eventName, controller.signal)).to.eventually.be.rejected().with.property('code', 'ABORT_ERR')
+    await expect(raceEvent(emitter, eventName, controller.signal)).to.eventually.be.rejected().with.property('name', 'AbortError')
   })
 
   it('should resolve after a delay', async () => {

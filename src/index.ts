@@ -109,20 +109,7 @@
  * ```
  */
 
-/**
- * An abort error class that extends error
- */
-export class AbortError extends Error {
-  public type: string
-  public code: string | string
-
-  constructor (message?: string, code?: string) {
-    super(message ?? 'The operation was aborted')
-    this.type = 'aborted'
-    this.name = 'AbortError'
-    this.code = code ?? 'ABORT_ERR'
-  }
-}
+import { AbortError } from 'abort-error'
 
 export interface RaceEventOptions<T> {
   /**
@@ -145,6 +132,12 @@ export interface RaceEventOptions<T> {
   errorEvent?: string
 
   /**
+   * If the 'errorEvent' option has been passed, and the emitted event has no
+   * `.detail` field, reject the promise with this error instead.
+   */
+  error?: Error
+
+  /**
    * When multiple events with the same name may be emitted, pass a filter
    * function here to allow ignoring ones that should not cause the returned
    * promise to resolve.
@@ -157,7 +150,13 @@ export interface RaceEventOptions<T> {
  */
 export async function raceEvent <T> (emitter: EventTarget, eventName: string, signal?: AbortSignal, opts?: RaceEventOptions<T>): Promise<T> {
   // create the error here so we have more context in the stack trace
-  const error = new AbortError(opts?.errorMessage, opts?.errorCode)
+  const error = new AbortError(opts?.errorMessage)
+
+  if (opts?.errorCode != null) {
+    // @ts-expect-error not a field of AbortError
+    error.code = opts.errorCode
+  }
+
   const errorEvent = opts?.errorEvent ?? 'error'
 
   if (signal?.aborted === true) {
@@ -188,7 +187,7 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
 
     const errorEventListener = (evt: any): void => {
       removeListeners()
-      reject(evt.detail)
+      reject(evt.detail ?? opts?.error ?? new Error(`The "${opts?.errorEvent}" event was emitted but the event had no '.detail' field. Pass an 'error' option to race-event to change this message.`))
     }
 
     const abortListener = (): void => {
