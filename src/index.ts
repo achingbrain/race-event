@@ -109,7 +109,7 @@
  * ```
  */
 
-import { AbortError } from "abort-error"
+import { AbortError } from 'abort-error'
 
 export interface RaceEventOptions<T> {
   /**
