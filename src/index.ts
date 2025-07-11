@@ -110,6 +110,7 @@
  */
 
 import { AbortError } from 'abort-error'
+import type { EventEmitter } from 'node:events'
 
 export interface RaceEventOptions<T> {
   /**
@@ -148,7 +149,7 @@ export interface RaceEventOptions<T> {
 /**
  * Race a promise against an abort signal
  */
-export async function raceEvent <T> (emitter: EventTarget, eventName: string, signal?: AbortSignal, opts?: RaceEventOptions<T>): Promise<T> {
+export async function raceEvent <T> (emitter: EventTarget | EventEmitter, eventName: string, signal?: AbortSignal, opts?: RaceEventOptions<T>): Promise<T> {
   // create the error here so we have more context in the stack trace
   const error = new AbortError(opts?.errorMessage)
 
@@ -165,9 +166,9 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
 
   return new Promise((resolve, reject) => {
     function removeListeners (): void {
-      signal?.removeEventListener('abort', abortListener)
-      emitter.removeEventListener(eventName, eventListener)
-      emitter.removeEventListener(errorEvent, errorEventListener)
+      removeListener(signal, 'abort', abortListener)
+      removeListener(emitter, eventName, eventListener)
+      removeListener(emitter, errorEvent, errorEventListener)
     }
 
     const eventListener = (evt: any): void => {
@@ -187,6 +188,12 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
 
     const errorEventListener = (evt: any): void => {
       removeListeners()
+
+      if (evt instanceof Error) {
+        reject(evt)
+        return
+      }
+
       reject(evt.detail ?? opts?.error ?? new Error(`The "${opts?.errorEvent}" event was emitted but the event had no '.detail' field. Pass an 'error' option to race-event to change this message.`))
     }
 
@@ -195,8 +202,36 @@ export async function raceEvent <T> (emitter: EventTarget, eventName: string, si
       reject(error)
     }
 
-    signal?.addEventListener('abort', abortListener)
-    emitter.addEventListener(eventName, eventListener)
-    emitter.addEventListener(errorEvent, errorEventListener)
+    addListener(signal, 'abort', abortListener)
+    addListener(emitter, eventName, eventListener)
+    addListener(emitter, errorEvent, errorEventListener)
   })
+}
+
+function addListener (emitter: EventEmitter | EventTarget | undefined, event: string, listener: any) {
+  if (emitter == null) {
+    return
+  }
+
+  if (isNodeEventEmitter(emitter)) {
+    emitter.addListener(event, listener)
+  } else {
+    emitter.addEventListener(event, listener)
+  }
+}
+
+function removeListener (emitter: EventEmitter | EventTarget | undefined, event: string, listener: any) {
+  if (emitter == null) {
+    return
+  }
+
+  if (isNodeEventEmitter(emitter)) {
+    emitter.removeListener(event, listener)
+  } else {
+    emitter.removeEventListener(event, listener)
+  }
+}
+
+function isNodeEventEmitter (emitter: any): emitter is EventEmitter {
+  return typeof emitter.on === 'function' && typeof emitter.emit === 'function'
 }
