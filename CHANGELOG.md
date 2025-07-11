@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/achingbrain/race-event/compare/v1.4.0...v1.5.0) (2025-07-11)
+
+### Features
+
+* accept error option ([#15](https://github.com/achingbrain/race-event/issues/15)) ([d4b8e4c](https://github.com/achingbrain/race-event/commit/d4b8e4c506ed632923152a5ed79f6d364af16921))
+
 ## [1.4.0](https://github.com/achingbrain/race-event/compare/v1.3.0...v1.4.0) (2025-07-11)
 
 ### Features
