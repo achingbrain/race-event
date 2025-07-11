@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events'
 import { expect } from 'aegir/chai'
 import { raceEvent } from '../src/index.js'
 
-describe('race-event (node.js)', () => {
+describe('race-event (EventEmitter)', () => {
   let emitter: EventEmitter
   let eventName: string
   let value: any

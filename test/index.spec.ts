@@ -3,7 +3,7 @@
 import { expect } from 'aegir/chai'
 import { raceEvent } from '../src/index.js'
 
-describe('race-event', () => {
+describe('race-event (EventTarget)', () => {
   let emitter: EventTarget
   let eventName: string
   let event: CustomEvent
