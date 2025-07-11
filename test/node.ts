@@ -1,8 +1,8 @@
 /* eslint-env mocha */
 
+import { EventEmitter } from 'node:events'
 import { expect } from 'aegir/chai'
 import { raceEvent } from '../src/index.js'
-import { EventEmitter } from 'node:events'
 
 describe('race-event (node.js)', () => {
   let emitter: EventEmitter

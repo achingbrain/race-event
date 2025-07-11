@@ -208,7 +208,7 @@ export async function raceEvent <T> (emitter: EventTarget | EventEmitter, eventN
   })
 }
 
-function addListener (emitter: EventEmitter | EventTarget | undefined, event: string, listener: any) {
+function addListener (emitter: EventEmitter | EventTarget | undefined, event: string, listener: any): void {
   if (emitter == null) {
     return
   }
@@ -220,7 +220,7 @@ function addListener (emitter: EventEmitter | EventTarget | undefined, event: st
   }
 }
 
-function removeListener (emitter: EventEmitter | EventTarget | undefined, event: string, listener: any) {
+function removeListener (emitter: EventEmitter | EventTarget | undefined, event: string, listener: any): void {
   if (emitter == null) {
     return
   }
