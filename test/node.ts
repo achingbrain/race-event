@@ -1,25 +1,26 @@
 /* eslint-env mocha */
 
+import { EventEmitter } from 'node:events'
 import { expect } from 'aegir/chai'
 import { raceEvent } from '../src/index.js'
 
-describe('race-event (EventTarget)', () => {
-  let emitter: EventTarget
+describe('race-event (EventEmitter)', () => {
+  let emitter: EventEmitter
   let eventName: string
-  let event: CustomEvent
+  let value: any
 
   beforeEach(() => {
-    emitter = new EventTarget()
+    emitter = new EventEmitter()
     eventName = 'event'
-    event = new CustomEvent(eventName)
+    value = 'hello'
   })
 
   it('should resolve value when no signal passed', async () => {
     queueMicrotask(() => {
-      emitter.dispatchEvent(event)
+      emitter.emit(eventName, value)
     })
 
-    await expect(raceEvent(emitter, eventName)).to.eventually.equal(event)
+    await expect(raceEvent(emitter, eventName)).to.eventually.equal(value)
   })
 
   it('should abort when aborted signal passed', async () => {
@@ -54,7 +55,7 @@ describe('race-event (EventTarget)', () => {
 
   it('should abort after a delay', async () => {
     setTimeout(() => {
-      emitter.dispatchEvent(event)
+      emitter.emit(eventName, value)
     }, 1000)
 
     const controller = new AbortController()
@@ -67,7 +68,7 @@ describe('race-event (EventTarget)', () => {
 
   it('should resolve after a delay', async () => {
     setTimeout(() => {
-      emitter.dispatchEvent(event)
+      emitter.emit(eventName, value)
     }, 100)
 
     const controller = new AbortController()
@@ -75,23 +76,23 @@ describe('race-event (EventTarget)', () => {
       controller.abort()
     }, 1000)
 
-    await expect(raceEvent(emitter, eventName, controller.signal)).to.eventually.equal(event)
+    await expect(raceEvent(emitter, eventName, controller.signal)).to.eventually.equal(value)
   })
 
   it('should filter events', async () => {
-    const otherEvent = new CustomEvent(eventName, { detail: 'hello' })
+    const otherValue = { detail: 'hello' }
     const controller = new AbortController()
 
     setTimeout(() => {
-      emitter.dispatchEvent(event)
-      emitter.dispatchEvent(otherEvent)
+      emitter.emit(eventName, { detail: 'world' })
+      emitter.emit(eventName, { detail: 'hello' })
     }, 10)
 
-    await expect(raceEvent<CustomEvent<string>>(emitter, eventName, controller.signal, {
+    await expect(raceEvent<{ detail: string }>(emitter, eventName, controller.signal, {
       filter: (evt) => {
         return evt.detail === 'hello'
       }
-    })).to.eventually.equal(otherEvent)
+    })).to.eventually.deep.equal(otherValue)
   })
 
   it('should reject if the filter throws', async () => {
@@ -99,10 +100,10 @@ describe('race-event (EventTarget)', () => {
     const controller = new AbortController()
 
     setTimeout(() => {
-      emitter.dispatchEvent(event)
+      emitter.emit(eventName, value)
     }, 10)
 
-    await expect(raceEvent<CustomEvent<string>>(emitter, eventName, controller.signal, {
+    await expect(raceEvent<string>(emitter, eventName, controller.signal, {
       filter: () => {
         throw err
       }
@@ -114,12 +115,10 @@ describe('race-event (EventTarget)', () => {
     const controller = new AbortController()
 
     setTimeout(() => {
-      emitter.dispatchEvent(new CustomEvent<Error>('error', {
-        detail: err
-      }))
+      emitter.emit('error', err)
     }, 10)
 
-    await expect(raceEvent<CustomEvent<string>>(emitter, eventName, controller.signal))
+    await expect(raceEvent<string>(emitter, eventName, controller.signal))
       .to.eventually.be.rejectedWith(err)
   })
 
@@ -128,12 +127,10 @@ describe('race-event (EventTarget)', () => {
     const controller = new AbortController()
 
     setTimeout(() => {
-      emitter.dispatchEvent(new CustomEvent<Error>('custom-error', {
-        detail: err
-      }))
+      emitter.emit('custom-error', err)
     }, 10)
 
-    await expect(raceEvent<CustomEvent<string>>(emitter, eventName, controller.signal, {
+    await expect(raceEvent<string>(emitter, eventName, controller.signal, {
       errorEvent: 'custom-error'
     })).to.eventually.be.rejectedWith(err)
   })
