@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/achingbrain/race-event/compare/v1.5.0...v1.6.0) (2025-07-11)
+
+### Features
+
+* support node EventEmitters ([#16](https://github.com/achingbrain/race-event/issues/16)) ([3f5526c](https://github.com/achingbrain/race-event/commit/3f5526cfc5739ea5d3d708981bcf8dd93ef198a2))
+
 ## [1.5.0](https://github.com/achingbrain/race-event/compare/v1.4.0...v1.5.0) (2025-07-11)
 
 ### Features
