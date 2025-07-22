@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/achingbrain/race-event/compare/v1.6.0...v1.6.1) (2025-07-22)
+
+### Bug Fixes
+
+* prefer event target ([#17](https://github.com/achingbrain/race-event/issues/17)) ([6ab2585](https://github.com/achingbrain/race-event/commit/6ab258517cbeeb8db9e75959dd8c649de3dab9d9))
+
 ## [1.6.0](https://github.com/achingbrain/race-event/compare/v1.5.0...v1.6.0) (2025-07-11)
 
 ### Features
