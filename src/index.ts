@@ -213,10 +213,10 @@ function addListener (emitter: EventEmitter | EventTarget | undefined, event: st
     return
   }
 
-  if (isNodeEventEmitter(emitter)) {
-    emitter.addListener(event, listener)
-  } else {
+  if (isEventTarget(emitter)) {
     emitter.addEventListener(event, listener)
+  } else {
+    emitter.addListener(event, listener)
   }
 }
 
@@ -225,13 +225,13 @@ function removeListener (emitter: EventEmitter | EventTarget | undefined, event:
     return
   }
 
-  if (isNodeEventEmitter(emitter)) {
-    emitter.removeListener(event, listener)
-  } else {
+  if (isEventTarget(emitter)) {
     emitter.removeEventListener(event, listener)
+  } else {
+    emitter.removeListener(event, listener)
   }
 }
 
-function isNodeEventEmitter (emitter: any): emitter is EventEmitter {
-  return typeof emitter.on === 'function' && typeof emitter.emit === 'function'
+function isEventTarget (emitter: any): emitter is EventTarget {
+  return typeof emitter.addEventListener === 'function' && typeof emitter.removeEventListener === 'function'
 }
